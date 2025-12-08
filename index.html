@@ -15,6 +15,49 @@
 
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:image" content="/og.jpg" />
+    <!-- Global error handler: shows runtime errors on the page to aid debugging -->
+    <script>
+      (function () {
+        function renderError(message) {
+          try {
+            var pre = document.createElement('pre');
+            pre.style.position = 'fixed';
+            pre.style.left = '0';
+            pre.style.right = '0';
+            pre.style.top = '0';
+            pre.style.background = 'rgba(0,0,0,0.85)';
+            pre.style.color = '#fff';
+            pre.style.zIndex = 999999;
+            pre.style.padding = '16px';
+            pre.style.whiteSpace = 'pre-wrap';
+            pre.style.maxHeight = '40vh';
+            pre.style.overflow = 'auto';
+            pre.textContent = message;
+            document.addEventListener('DOMContentLoaded', function () {
+              document.body.appendChild(pre);
+            });
+            if (document.readyState === 'complete' || document.readyState === 'interactive') {
+              document.body.appendChild(pre);
+            }
+          } catch (e) {
+            // ignore
+          }
+        }
+
+        window.addEventListener('error', function (ev) {
+          var msg = 'Error: ' + (ev && ev.message ? ev.message : String(ev));
+          if (ev && ev.filename) msg += '\n at ' + ev.filename + ':' + ev.lineno + ':' + ev.colno;
+          renderError(msg);
+          console.error(ev.error || ev.message || ev);
+        });
+
+        window.addEventListener('unhandledrejection', function (ev) {
+          var reason = ev && ev.reason ? ev.reason : ev;
+          renderError('Unhandled Rejection: ' + (reason && reason.stack ? reason.stack : String(reason)));
+          console.error('Unhandled Rejection', reason);
+        });
+      })();
+    </script>
     <script type="module" crossorigin src="/assets/index-DScQJp6V.js"></script>
     <link rel="stylesheet" crossorigin href="/assets/index-BPcixP3V.css">
   </head>
