@@ -59,14 +59,11 @@ export function ThemeProvider({
     </ThemeContext.Provider>
   )
 }
-export function npx vitestuseTheme(): ThemeContextType {
+export function useTheme(): ThemeContextType {
   const context = useContext(ThemeContext)
   if (!context) {
     throw new Error("useTheme must be used within a ThemeProvider")
   }
   return context
-}
-function vitestuseTheme() {
-  throw new Error("Function not implemented.")
 }
 
