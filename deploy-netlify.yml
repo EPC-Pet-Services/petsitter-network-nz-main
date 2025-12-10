@@ -1,0 +1,51 @@
+name: Deploy to Netlify
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch: {}
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install
+        run: npm ci
+
+      - name: Build
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+        run: npm run build
+
+      - name: Verify required secrets
+        run: |
+          missing=0
+          if [ -z "${{ secrets.NETLIFY_AUTH_TOKEN }}" ] || [ -z "${{ secrets.NETLIFY_SITE_ID }}" ]; then
+            echo "ERROR: Missing Netlify secrets. Set NETLIFY_AUTH_TOKEN and NETLIFY_SITE_ID in repository Settings → Secrets and variables → Actions."
+            missing=1
+          fi
+          if [ -z "${{ secrets.VITE_SUPABASE_URL }}" ] || [ -z "${{ secrets.VITE_SUPABASE_ANON_KEY }}" ]; then
+            echo "WARNING: Supabase build-time secrets (VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY) are not set. The site will build in 'mock' mode unless these are provided. To enable live backend, set these secrets in repository Settings → Secrets and variables → Actions."
+          fi
+          if [ "$missing" -eq 1 ]; then
+            exit 1
+          fi
+
+      - name: Deploy to Netlify
+        uses: nwtgck/actions-netlify@v2.1.0
+        with:
+          publish-dir: dist
+          production-branch: main
+          deploy-message: "GitHub Actions: ${{ github.sha }}"
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
